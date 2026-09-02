@@ -1,0 +1,38 @@
+# Environment variables (Never commit!)
+.env
+.env.local
+.env.*.local
+
+# Python bytecode & virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+
+# Data & Download directories
+data/
+downloads/
+temp/
+outputs/
+*.xlsx
+*.xls
+*.csv
+*.json
+!requirements.txt
+!package*.json
+
+# Logs & Screenshots
+*.log
+logs/
+*.png
+*.jpg
+*.jpeg
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
