@@ -44,6 +44,11 @@ class GoAppDownloader:
         await page.fill('input[type="password"]', brand.password)
         await page.click('button[type="submit"]')
 
+        try:
+            await page.wait_for_load_state("networkidle", timeout=15000)
+        except Exception:
+            pass
+
         # Wait for redirect and session establishment
         await page.wait_for_timeout(8000)
 
@@ -59,34 +64,25 @@ class GoAppDownloader:
         log(f"✅ Login successful for [{brand.name}]")
 
     async def _download_report(self, page: Page, url: str, target_path: Path, label: str, max_retries: int = 2) -> Path:
-        """Navigates to GoApp report export URL, waits for Download Ready, and saves file with retry support."""
-        download_selector = 'text=Download Ready, a:has-text("Download"), button:has-text("Download"), a[href*=".xlsx"]'
-        
+        """Navigates to GoApp report export URL, waits for Download Ready, and saves file."""
         for attempt in range(1, max_retries + 1):
             log(f"📥 Downloading {label} (Attempt {attempt}/{max_retries})...")
             log(f"🌐 Target URL: {url}")
             
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=120000)
+                
+                # Critical: allow GoApp SPA frontend 5 seconds to trigger backend export task
+                await page.wait_for_timeout(5000)
+                
                 log("⏳ Waiting for report generation from GoApp server...")
                 
-                # Check for immediate redirect to login / session expiration
-                current_url = page.url.lower()
-                if "login" in current_url:
-                    log("⚠️ Session appears expired or redirected to login page.")
-
-                await page.wait_for_selector(download_selector, timeout=350000)
-                log(f"🎯 Download button/link detected for {label}!")
-                
-                # Prefer clicking the actual link/button
-                click_locator = page.locator('a:has-text("Download")')
-                if await click_locator.count() == 0:
-                    click_locator = page.locator('text=Download Ready')
-                if await click_locator.count() == 0:
-                    click_locator = page.locator('button:has-text("Download")')
+                # Wait for "Download Ready"
+                await page.wait_for_selector("text=Download Ready", timeout=350000)
+                log(f"🎯 'Download Ready' detected for {label}!")
 
                 async with page.expect_download(timeout=120000) as download_info:
-                    await click_locator.first.click()
+                    await page.locator('a:has-text("Download")').first.click()
                     
                 download = await download_info.value
                 target_path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,6 +102,7 @@ class GoAppDownloader:
                     await page.wait_for_timeout(5000)
                 else:
                     raise TimeoutError(f"Timed out waiting for report generation on {label} after {max_retries} attempts. Screenshot: {screenshot_path}")
+
 
 
 

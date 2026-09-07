@@ -51,7 +51,8 @@ class BrandConfig:
     
     @property
     def login_url(self) -> str:
-        return f"https://my.goapp.co.id/account/login/?email={self.email.replace('@', '%40')}&business={self.business_id}"
+        return f"https://my.goapp.co.id/account/login/?email={self.email}&business={self.business_id}"
+
     
     def get_list_url(self, target_date: date) -> str:
         date_str = target_date.strftime("%Y-%m-%d")
