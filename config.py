@@ -75,21 +75,27 @@ class BrandConfig:
         )
 
 
+def get_env_or_default(key: str, default: str) -> str:
+    """Returns the environment variable value, or default if not set or empty."""
+    val = os.getenv(key, "").strip()
+    return val if val else default
+
+
 @dataclass
 class JWTConfig:
-    secret: str = field(default_factory=lambda: os.getenv("JWT_SECRET", "default_secret_key_change_me"))
-    algorithm: str = field(default_factory=lambda: os.getenv("JWT_ALGORITHM", "HS256"))
-    expiry_seconds: int = field(default_factory=lambda: int(os.getenv("JWT_EXPIRY_SECONDS", "3600")))
-    issuer: str = field(default_factory=lambda: os.getenv("JWT_ISSUER", "goapp-data-extractor"))
-    audience: Optional[str] = field(default_factory=lambda: os.getenv("JWT_AUDIENCE", None))
-    static_token: Optional[str] = field(default_factory=lambda: os.getenv("STATIC_BEARER_TOKEN", None))
+    secret: str = field(default_factory=lambda: get_env_or_default("JWT_SECRET", "default_secret_key_change_me"))
+    algorithm: str = field(default_factory=lambda: get_env_or_default("JWT_ALGORITHM", "HS256"))
+    expiry_seconds: int = field(default_factory=lambda: int(get_env_or_default("JWT_EXPIRY_SECONDS", "3600")))
+    issuer: str = field(default_factory=lambda: get_env_or_default("JWT_ISSUER", "goapp-data-extractor"))
+    audience: Optional[str] = field(default_factory=lambda: os.getenv("JWT_AUDIENCE", "").strip() or None)
+    static_token: Optional[str] = field(default_factory=lambda: os.getenv("STATIC_BEARER_TOKEN", "").strip() or None)
 
 
 @dataclass
 class APIConfig:
-    endpoint_url: str = field(default_factory=lambda: os.getenv("API_ENDPOINT_URL", "https://httpbin.org/post"))
-    timeout_seconds: int = field(default_factory=lambda: int(os.getenv("API_TIMEOUT_SECONDS", "60")))
-    max_retries: int = field(default_factory=lambda: int(os.getenv("API_MAX_RETRIES", "3")))
+    endpoint_url: str = field(default_factory=lambda: get_env_or_default("API_ENDPOINT_URL", "https://httpbin.org/post"))
+    timeout_seconds: int = field(default_factory=lambda: int(get_env_or_default("API_TIMEOUT_SECONDS", "60")))
+    max_retries: int = field(default_factory=lambda: int(get_env_or_default("API_MAX_RETRIES", "3")))
 
 
 @dataclass
@@ -105,35 +111,36 @@ class AppConfig:
 
 def load_app_config(custom_date: Optional[str] = None) -> AppConfig:
     """Constructs AppConfig from environment variables and defaults."""
-    default_email = os.getenv("GOAPP_EMAIL", "cs2@ikonsfurniture.com").strip()
+    default_email = get_env_or_default("GOAPP_EMAIL", "cs2@ikonsfurniture.com")
     default_password = os.getenv("GOAPP_PASSWORD", "").strip()
     
     # 1. IKONS
     ikons_config = BrandConfig(
         name="IKONS",
-        email=os.getenv("IKONS_GOAPP_EMAIL", default_email).strip(),
-        password=os.getenv("IKONS_GOAPP_PASSWORD", default_password).strip(),
-        business_id=os.getenv("IKONS_BUSINESS_ID", "136404588220488").strip(),
-        report_id=os.getenv("IKONS_REPORT_ID", "199").strip()
+        email=get_env_or_default("IKONS_GOAPP_EMAIL", default_email),
+        password=get_env_or_default("IKONS_GOAPP_PASSWORD", default_password),
+        business_id=get_env_or_default("IKONS_BUSINESS_ID", "136404588220488"),
+        report_id=get_env_or_default("IKONS_REPORT_ID", "199")
     )
     
     # 2. MODULO
     modulo_config = BrandConfig(
         name="MODULO",
-        email=os.getenv("MODULO_GOAPP_EMAIL", default_email).strip(),
-        password=os.getenv("MODULO_GOAPP_PASSWORD", default_password).strip(),
-        business_id=os.getenv("MODULO_BUSINESS_ID", "136046770557000").strip(),
-        report_id=os.getenv("MODULO_REPORT_ID", "211").strip()
+        email=get_env_or_default("MODULO_GOAPP_EMAIL", default_email),
+        password=get_env_or_default("MODULO_GOAPP_PASSWORD", default_password),
+        business_id=get_env_or_default("MODULO_BUSINESS_ID", "136046770557000"),
+        report_id=get_env_or_default("MODULO_REPORT_ID", "211")
     )
     
     # 3. ZBOM
     zbom_config = BrandConfig(
         name="ZBOM",
-        email=os.getenv("ZBOM_GOAPP_EMAIL", default_email).strip(),
-        password=os.getenv("ZBOM_GOAPP_PASSWORD", default_password).strip(),
-        business_id=os.getenv("ZBOM_BUSINESS_ID", "136046770557000").strip(),
-        report_id=os.getenv("ZBOM_REPORT_ID", "211").strip()
+        email=get_env_or_default("ZBOM_GOAPP_EMAIL", default_email),
+        password=get_env_or_default("ZBOM_GOAPP_PASSWORD", default_password),
+        business_id=get_env_or_default("ZBOM_BUSINESS_ID", "136046770557000"),
+        report_id=get_env_or_default("ZBOM_REPORT_ID", "211")
     )
+
     
     brands_map = {
         "IKONS": ikons_config,
