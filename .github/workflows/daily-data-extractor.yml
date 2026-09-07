@@ -97,13 +97,14 @@ jobs:
           fi
           
           echo "Executing: python -u main.py $ARGS"
-      - name: Upload Extracted JSON Data & Logs
+          PYTHONUNBUFFERED=1 python -u main.py $ARGS
+
+      - name: Upload Extracted JSON Data
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: goapp-daily-json-data
-          path: |
-            data/*.json
-            logs/
+          path: data/*.json
           retention-days: 7
+
 
