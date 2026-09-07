@@ -61,15 +61,32 @@ class GoAppDownloader:
     async def _download_report(self, page: Page, url: str, target_path: Path, label: str) -> Path:
         """Navigates to GoApp report export URL, waits for Download Ready, and saves file."""
         log(f"📥 Downloading {label}...")
+        log(f"🌐 Target URL: {url}")
         
         await page.goto(url, wait_until="domcontentloaded", timeout=120000)
-        log("⏳ Waiting for report generation ('Download Ready')...")
+        log("⏳ Waiting for report generation from GoApp server...")
+        
+        # Check for immediate redirect to login / session expiration
+        current_url = page.url.lower()
+        if "login" in current_url:
+            log("⚠️ Session appears expired or redirected to login page.")
         
         try:
-            await page.wait_for_selector("text=Download Ready", timeout=350000)
+            # Flexible selector: waits for 'Download Ready' badge OR direct 'Download' link
+            download_selector = 'text=Download Ready, a:has-text("Download"), button:has-text("Download"), a[href*=".xlsx"]'
             
+            await page.wait_for_selector(download_selector, timeout=350000)
+            log(f"🎯 Download button/link detected for {label}!")
+            
+            # Prefer clicking the actual link/button
+            click_locator = page.locator('a:has-text("Download")')
+            if await click_locator.count() == 0:
+                click_locator = page.locator('text=Download Ready')
+            if await click_locator.count() == 0:
+                click_locator = page.locator('button:has-text("Download")')
+
             async with page.expect_download(timeout=120000) as download_info:
-                await page.click("text=Download Ready")
+                await click_locator.first.click()
                 
             download = await download_info.value
             target_path.parent.mkdir(parents=True, exist_ok=True)
@@ -80,7 +97,10 @@ class GoAppDownloader:
         except PlaywrightTimeoutError:
             screenshot_path = self.logs_dir / f"timeout_{target_path.stem}.png"
             await page.screenshot(path=str(screenshot_path))
-            raise TimeoutError(f"Timed out waiting for 'Download Ready' on {label}. Screenshot: {screenshot_path}")
+            page_text = (await page.inner_text("body"))[:300].replace("\n", " ") if await page.locator("body").count() > 0 else "N/A"
+            log(f"⚠️ Page content on timeout: {page_text}")
+            raise TimeoutError(f"Timed out waiting for report generation on {label}. Screenshot: {screenshot_path}")
+
 
     async def download_brand_reports(self, brand: BrandConfig, target_date: date) -> DownloadedFiles:
         """
