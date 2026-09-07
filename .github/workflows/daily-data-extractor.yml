@@ -97,14 +97,13 @@ jobs:
           fi
           
           echo "Executing: python -u main.py $ARGS"
-          PYTHONUNBUFFERED=1 python -u main.py $ARGS
-
-      - name: Upload Debug Screenshots / Logs on Failure
-        if: failure()
+      - name: Upload Extracted JSON Data & Logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: goapp-debug-logs
+          name: goapp-daily-json-data
           path: |
-            logs/
             data/*.json
+            logs/
           retention-days: 7
+
