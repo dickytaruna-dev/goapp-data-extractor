@@ -56,13 +56,13 @@ jobs:
           GOAPP_EMAIL: ${{ secrets.GOAPP_EMAIL }}
           GOAPP_PASSWORD: ${{ secrets.GOAPP_PASSWORD }}
           
-          # Brand Workspace Settings (Optional secret overrides)
-          IKONS_BUSINESS_ID: ${{ secrets.IKONS_BUSINESS_ID }}
-          IKONS_REPORT_ID: ${{ secrets.IKONS_REPORT_ID }}
-          MODULO_BUSINESS_ID: ${{ secrets.MODULO_BUSINESS_ID }}
-          MODULO_REPORT_ID: ${{ secrets.MODULO_REPORT_ID }}
-          ZBOM_BUSINESS_ID: ${{ secrets.ZBOM_BUSINESS_ID }}
-          ZBOM_REPORT_ID: ${{ secrets.ZBOM_REPORT_ID }}
+          # Brand Workspace Settings (Optional secret overrides with default fallbacks)
+          IKONS_BUSINESS_ID: ${{ secrets.IKONS_BUSINESS_ID || '136404588220488' }}
+          IKONS_REPORT_ID: ${{ secrets.IKONS_REPORT_ID || '199' }}
+          MODULO_BUSINESS_ID: ${{ secrets.MODULO_BUSINESS_ID || '136046770557000' }}
+          MODULO_REPORT_ID: ${{ secrets.MODULO_REPORT_ID || '211' }}
+          ZBOM_BUSINESS_ID: ${{ secrets.ZBOM_BUSINESS_ID || '136046770557000' }}
+          ZBOM_REPORT_ID: ${{ secrets.ZBOM_REPORT_ID || '211' }}
           
           # Target API Settings
           API_ENDPOINT_URL: ${{ secrets.API_ENDPOINT_URL }}
@@ -76,6 +76,7 @@ jobs:
           JWT_ISSUER: ${{ secrets.JWT_ISSUER || 'goapp-data-extractor' }}
           JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
           STATIC_BEARER_TOKEN: ${{ secrets.STATIC_BEARER_TOKEN }}
+
           
           # Runtime flags
           HEADLESS: "true"
